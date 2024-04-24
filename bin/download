@@ -16,8 +16,8 @@ release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.tar.gz"
 download_release "$ASDF_INSTALL_VERSION" "$release_file"
 
 #  Extract contents of tar.gz file into the download directory
-EXTRACTED_FILE=$(tar -xvzf "$release_file" -C "$ASDF_DOWNLOAD_PATH") || fail "Could not extract $release_file"
-mv "$ASDF_DOWNLOAD_PATH/$EXTRACTED_FILE" "$ASDF_DOWNLOAD_PATH/$TOOL_NAME"
+tar -xvzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+mv -fv "$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$(get_os)-$(get_arch)" "$ASDF_DOWNLOAD_PATH/$TOOL_NAME"
 
 # Remove the tar.gz file since we don't need to keep it
 rm "$release_file"
