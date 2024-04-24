@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for vmctl.
 GH_REPO="https://github.com/VictoriaMetrics/vmctl"
 TOOL_NAME="vmctl"
 TOOL_TEST="vmctl --version"
@@ -14,7 +13,6 @@ fail() {
 
 curl_opts=(-fsSL)
 
-# NOTE: You might want to remove this if vmctl is not hosted on GitHub releases.
 if [ -n "${GITHUB_API_TOKEN:-}" ]; then
 	curl_opts=("${curl_opts[@]}" -H "Authorization: token $GITHUB_API_TOKEN")
 fi
@@ -31,8 +29,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-	# Change this function if vmctl has other means of determining installable versions.
 	list_github_tags
 }
 
@@ -41,8 +37,7 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for vmctl
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/${version}/$TOOL_NAME-${version}-$(get_os)-$(get_arch).tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -61,7 +56,6 @@ install_version() {
 		mkdir -p "$install_path"
 		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-		# TODO: Assert vmctl executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
@@ -71,4 +65,33 @@ install_version() {
 		rm -rf "$install_path"
 		fail "An error occurred while installing $TOOL_NAME $version."
 	)
+}
+
+get_os() {
+	local os
+	os="$(uname | tr '[:upper:]' '[:lower:]')"
+
+	echo "$os"
+}
+
+get_arch() {
+	local arch
+	arch="$(uname -m)"
+
+	case "$arch" in
+	x86_64 | x64 | amd64)
+		arch="amd64"
+		;;
+	i?86 | x86)
+		arch="386"
+		;;
+	aarch64 | arm64)
+		arch="arm64"
+		;;
+	arm*)
+		arch="arm"
+		;;
+	esac
+
+	echo "$arch"
 }
